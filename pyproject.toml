@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "valometa"
+version = "0.1.0"
+description = "Valorant Agent Meta tracking app bro"
+authors = ["Kobe harald.rockata@gmail.com", "Bloop ali.jad103@gmail.com"]
+
+[tool.poetry.dependencies]
+python = ">=3.8,<3.11"
+requests = "^2.26.0"
+pandas = "^1.3.4"
+SQLAlchemy = "^1.4.27"
+pydantic = "^1.8.2"
+parsel = "^1.6.0"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+ipython = "^7.27.0"
+jupyter = "^1.0.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
