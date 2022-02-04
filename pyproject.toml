@@ -2,7 +2,10 @@
 name = "valometa"
 version = "0.1.0"
 description = "Valorant Agent Meta tracking app bro"
-authors = ["Kobe harald.rockata@gmail.com", "Bloop ali.jad103@gmail.com"]
+authors = [
+    "Kobe <harald.rockata@gmail.com>",
+    "Bloop <ali.jad103@gmail.com>"
+]
 
 [tool.poetry.dependencies]
 python = ">=3.8,<3.11"
