@@ -153,3 +153,4 @@ cython_debug/
 
 # vscode workspaces ignore
 workspace.code-workspace
+uploaded_data/

@@ -3,7 +3,6 @@ import os
 import pandas
 import streamlit
 
-from bokeh.plotting import figure
 import plotly.express as px
 
 from sqlalchemy import create_engine
@@ -56,7 +55,11 @@ date_range = streamlit.slider(
     max_value=maximum_date
 )
 
-filtered_match_counts = match_count_per_day.query("timestamp >= @date_range[0] and timestamp <= @date_range[1]").assign(color='#eeeeee')
+filtered_match_counts = (
+    match_count_per_day
+    .query("timestamp >= @date_range[0] and timestamp <= @date_range[1]")
+    .assign(color='#eeeeee')
+)
 
 p = px.line(filtered_match_counts, x='timestamp', y='count')
 
