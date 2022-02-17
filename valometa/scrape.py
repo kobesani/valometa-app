@@ -7,7 +7,12 @@ from pydantic.dataclasses import dataclass
 
 from valometa.extractors.results.other import DateExtractor
 from valometa.extractors.results.selectors import CardExtractor
-from valometa.extractors.results.single import Event
+from valometa.extractors.results.single import (
+    Event,
+    Stakes,
+    MapStats,
+    PlayerStats
+)
 
 
 @dataclass
@@ -16,6 +21,9 @@ class MatchBasic:
     url: str
     match_id: int
     event: str
+    stakes: str
+    map_stats: bool
+    player_stats: bool
 
 
 class MatchExtractor(object):
@@ -62,5 +70,8 @@ class MatchExtractor(object):
                     timestamp=self.build_timestamp(date, match),
                     url=match.attrib['href'],
                     match_id=int(match.attrib['href'].split("/")[1]),
-                    event=Event(match).yield_data()
+                    event=Event(match).yield_data(),
+                    stakes=Stakes(match).yield_data(),
+                    player_stats=PlayerStats(match).yield_data(),
+                    map_stats=MapStats(match).yield_data()
                 )
