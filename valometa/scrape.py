@@ -118,6 +118,7 @@ class Event(object):
     def yield_data(self) -> Optional[str]:
         return (
             self
+            .selector
             .xpath("./div[@class='match-item-event text-of']")
             .xpath("normalize-space(./text()[last()])")
             .get()
