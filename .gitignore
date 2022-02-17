@@ -152,5 +152,5 @@ cython_debug/
 #.idea/
 
 # vscode workspaces ignore
-workspace.code-workspace
+*.code-workspace
 uploaded_data/
