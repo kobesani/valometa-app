@@ -1,6 +1,5 @@
 from datetime import datetime
-from difflib import Match
-from typing import Iterator, List
+from typing import Iterator, List, Optional
 
 import parsel
 
@@ -11,6 +10,7 @@ class MatchBasic:
     timestamp: datetime
     url: str
     match_id: int
+    event: str
 
 
 class DateExtractor(object):
@@ -89,6 +89,11 @@ class MatchExtractor(object):
             "%a, %B %d, %Y, %I:%M %p %Z%z"
         )
 
+    def event_name(self, match: parsel.Selector) -> Optional[str]:
+        return (
+            Event(match).yield_data()
+        )
+
     def yield_data(self):
         for date, card in zip(
             self.date_extractor.yield_data(),
@@ -101,5 +106,19 @@ class MatchExtractor(object):
                 yield MatchBasic(
                     timestamp=self.build_timestamp(date, match),
                     url=match.attrib['href'],
-                    match_id=int(match.attrib['href'].split("/")[1])
+                    match_id=int(match.attrib['href'].split("/")[1]),
+                    event=self.event_name(match)
                 )
+
+
+class Event(object):
+    def __init__(self, selector: parsel.Selector):
+        self.selector = selector
+
+    def yield_data(self) -> Optional[str]:
+        return (
+            self
+            .xpath("./div[@class='match-item-event text-of']")
+            .xpath("normalize-space(./text()[last()])")
+            .get()
+        )
