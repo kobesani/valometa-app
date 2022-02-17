@@ -20,7 +20,8 @@ class DateExtractor(object):
     Attributes
     ----------
     selector: parsel.Selector
-        a parsel Selector on which one can call xpath and getall methods
+        the parsel Selector created using the response.text (i.e. the main
+        selector), needs xpath and getall methods
     
     Methods
     -------
@@ -46,10 +47,27 @@ class DateExtractor(object):
 
 
 class CardExtractor(object):
+    """
+    A class extracting the cards (containing matches) from the
+    vlr.gg/matches/results pages
+
+    Attributes
+    ----------
+    selector: parsel.Selector
+        the parsel Selector created using the response.text (i.e. the main
+        selector), needs xpath method for extracting data
+    
+    Methods
+    -------
+    yield_data() -> Iterator[parsel.Selector]
+        returns the cards under each date on the vlr.gg match results pages
+
+    """
+
     def __init__(self, selector: parsel.Selector) -> None:
         self.selector = selector
 
-    def yield_data(self) -> List[parsel.Selector]:
+    def yield_data(self) -> Iterator[parsel.Selector]:
         data = (
             self
             .selector
@@ -82,16 +100,13 @@ class MatchExtractor(object):
             .total_seconds()
         )
 
+        # all offsets should be divisible by 3600 seconds (1 hour)
         utc_offset_hours = int(utc_offset / 3600)
 
+        # the :02 in the f-string gives zero padding to offset
         return datetime.strptime(
             f"{date}, {time} UTC+{utc_offset_hours:02}:00",
             "%a, %B %d, %Y, %I:%M %p %Z%z"
-        )
-
-    def event_name(self, match: parsel.Selector) -> Optional[str]:
-        return (
-            Event(match).yield_data()
         )
 
     def yield_data(self):
@@ -107,7 +122,7 @@ class MatchExtractor(object):
                     timestamp=self.build_timestamp(date, match),
                     url=match.attrib['href'],
                     match_id=int(match.attrib['href'].split("/")[1]),
-                    event=self.event_name(match)
+                    event=Event(match).yield_data()
                 )
 
 
