@@ -42,7 +42,7 @@ class MapStats(object):
     def __init__(self, selector: parsel.Selector) -> None:
         self.selector = selector
 
-    def yield_data(self) -> Optional[bool]:
+    def yield_data(self) -> bool:
         stats = (
             self
             .selector
@@ -62,7 +62,7 @@ class PlayerStats(object):
     def __init__(self, selector: parsel.Selector) -> None:
         self.selector = selector
 
-    def yield_data(self) -> Optional[bool]:
+    def yield_data(self) -> bool:
         stats = (
             self
             .selector
