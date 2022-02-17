@@ -3,8 +3,7 @@ from typing import Iterator, List, Optional
 
 import parsel
 
-from pydantic.dataclasses import dataclass
-
+from valometa.models.database import MatchItem
 from valometa.extractors.results.other import DateExtractor
 from valometa.extractors.results.selectors import CardExtractor
 from valometa.extractors.results.single import (
@@ -13,17 +12,6 @@ from valometa.extractors.results.single import (
     MapStats,
     PlayerStats
 )
-
-
-@dataclass
-class MatchBasic:
-    timestamp: datetime
-    url: str
-    match_id: int
-    event: str
-    stakes: str
-    map_stats: bool
-    player_stats: bool
 
 
 class MatchExtractor(object):
@@ -66,7 +54,7 @@ class MatchExtractor(object):
                 card.xpath("./a[contains(@class, 'wf-module-item match-item')]")
             ):
 
-                yield MatchBasic(
+                yield MatchItem(
                     timestamp=self.build_timestamp(date, match),
                     url=match.attrib['href'],
                     match_id=int(match.attrib['href'].split("/")[1]),
