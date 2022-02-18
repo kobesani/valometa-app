@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from pydantic.dataclasses import dataclass
 
@@ -15,7 +15,7 @@ from sqlalchemy import (
 
 @dataclass
 class MatchItem:
-    timestamp: datetime
+    timestamp: Optional[datetime]
     url: str
     match_id: int
     event: str
@@ -36,7 +36,7 @@ class Matches(valometa_base):
 
     match_id = Column(Integer, primary_key=True)
     url = Column(String)
-    timestamp = Column(DateTime)
+    timestamp = Column(DateTime, nullable=True)
     stakes = Column(String)
     event = Column(String)
     map_stats = Column(Boolean)

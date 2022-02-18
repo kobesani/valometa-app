@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 
 import parsel
 
@@ -21,7 +22,7 @@ class Timestamp(object):
             "UTC offset is not a whole hour number"
         )
 
-    def yield_data(self) -> datetime:
+    def yield_data(self) -> Optional[datetime]:
         time = (
             self
             .selector
@@ -29,6 +30,9 @@ class Timestamp(object):
             .xpath("normalize-space(./text())")
             .get()
         )
+
+        if not time:
+            return None
 
         return datetime.strptime(
             f"{self.date}, {time} UTC+{self.utc_offset:02}:00",
