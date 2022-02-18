@@ -31,6 +31,6 @@ class Timestamp(object):
         )
 
         return datetime.strptime(
-            f"{self.date}, {time} UTC+{self.utc_offset_hours:02}:00",
+            f"{self.date}, {time} UTC+{self.utc_offset:02}:00",
             "%a, %B %d, %Y, %I:%M %p %Z%z"
         )
