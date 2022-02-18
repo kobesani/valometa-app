@@ -12,7 +12,7 @@ from valometa.extractors.results.single import (
     MapStats,
     PlayerStats
 )
-
+from valometa.extractors.results.special import Timestamp
 
 class MatchExtractor(object):
     def __init__(self, selector: parsel.Selector) -> None:
@@ -55,7 +55,8 @@ class MatchExtractor(object):
             ):
 
                 yield MatchItem(
-                    timestamp=self.build_timestamp(date, match),
+                    # timestamp=self.build_timestamp(date, match),
+                    timestamp=Timestamp(match, date).yield_data()
                     url=match.attrib['href'],
                     match_id=int(match.attrib['href'].split("/")[1]),
                     event=Event(match).yield_data(),
