@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Any, Dict
 
 from pydantic.dataclasses import dataclass
 
@@ -21,6 +22,11 @@ class MatchItem:
     stakes: str
     map_stats: bool
     player_stats: bool
+
+    def asdict(self) -> Dict[str, Any]:
+        return {
+            x: self.__dict__[x] for x in self.__dataclass_fields__.keys()
+        }
 
 
 valometa_base = declarative_base()
