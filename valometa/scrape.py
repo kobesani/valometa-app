@@ -1,3 +1,5 @@
+import os
+from sqlite3 import IntegrityError
 import time
 
 from typing import Dict, Iterator, Optional
@@ -57,9 +59,9 @@ class MatchesBuild(object):
         self.session = requests.Session()
         self.delay = delay
         self.sqlite_db_path = sqlite_db_path
-        self.engine = create_engine(f"sqlite:///{self.sqlite_db_path}")
-        self.db_session_maker = sessionmaker(bind=self.engine)
-        valometa_base.metadata.create_all(self.engine)
+        # self.engine = create_engine(f"sqlite:///{self.sqlite_db_path}")
+        # self.db_session_maker = sessionmaker(bind=self.engine)
+        # valometa_base.metadata.create_all(self.engine)
 
         self.current_page = 1
 
@@ -78,6 +80,16 @@ class MatchesBuild(object):
         )
 
         self.failed_requests: Dict[int, int] = {}
+
+    def set_up_builder(self) -> None:
+        try:
+            os.remove(sqlite_db_path)
+        except FileNotFoundError:
+            pass
+
+        self.engine = create_engine(f"sqlite:///{self.sqlite_db_path}")
+        self.db_session_maker = sessionmaker(bind=self.engine)
+        valometa_base.metadata.create_all(self.engine)
 
     def request(self) -> Optional[requests.models.Response]:
         with self.session as sesh:
@@ -105,9 +117,15 @@ class MatchesBuild(object):
         for match in matches_generator:
             with self.db_session_maker() as sesh:
                 sesh.add(Matches(**match.asdict()))
-                sesh.commit()
+                try:
+                    sesh.commit()
+                except IntegrityError as e:
+                    # error is raised when games are shifted between pages
+                    # due to games finishing and being added to page 1
+                    print(e)
 
     def build_database(self) -> None:
+        self.set_up_builder()
         for x in range(1, self.max_pages + 1):
             print(f"Scraping Page {x}")
             self.current_page = x
