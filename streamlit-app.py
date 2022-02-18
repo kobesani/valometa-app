@@ -7,6 +7,7 @@ import plotly.express as px
 
 from sqlalchemy import create_engine
 
+from valometa.data import sqlite_db_path
 from valometa.utils.data import get_matches_per_day
 
 uploaded_data_path = f"{os.path.dirname(__file__)}/uploaded_data"
@@ -22,7 +23,7 @@ def get_data(sqlite_path: str = None) -> pandas.DataFrame:
     return pandas.read_sql_table("matches", con=engine)
 
 
-database_path = "./vlr-gg.db"
+database_path = sqlite_db_path
 
 streamlit.title("Valorant Agent Meta Analyzer")
 
