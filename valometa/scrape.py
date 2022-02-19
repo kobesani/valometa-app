@@ -52,16 +52,13 @@ class MatchExtractor(object):
 
 class MatchesBuild(object):
     def __init__(
-        self, 
+        self,
         sqlite_db_path: str = sqlite_db_path, 
         delay: int = 1
     ) -> None:
         self.session = requests.Session()
         self.delay = delay
         self.sqlite_db_path = sqlite_db_path
-        # self.engine = create_engine(f"sqlite:///{self.sqlite_db_path}")
-        # self.db_session_maker = sessionmaker(bind=self.engine)
-        # valometa_base.metadata.create_all(self.engine)
 
         self.current_page = 1
 
@@ -134,9 +131,60 @@ class MatchesBuild(object):
 
 
 class MatchesUpdate(object):
-    pass
+    def __init__(
+        self,
+        sqlite_db_path: str = sqlite_db_path, 
+        delay: int = 1
+    ) -> None:
 
+        self.session = requests.Session()
+        self.delay = delay
+        self.sqlite_db_path = sqlite_db_path    
 
+    def set_up_updater(self) -> None:
+        self.engine = create_engine(f"sqlite:///{self.sqlite_db_path}")
+        self.db_session_maker = sessionmaker(bind=self.engine)
+
+    def request(self) -> Optional[requests.models.Response]:
+        with self.session as sesh:
+            response = sesh.get(
+                match_results_url.format(page=self.current_page)
+            )
+
+        self.status_code = response.status_code
+
+        if self.status_code != 200:
+            self.failed_requests[self.current_page] = self.status_code
+            return None
+
+        return response
+
+    def parse_response(self) -> None:
+        response = self.request()
+
+        if response is None:
+            return
+        
+        main_select = parsel.Selector(response.text)
+        matches_generator = MatchExtractor(main_select).yield_data()
+
+        for match in matches_generator:
+            with self.db_session_maker() as sesh:
+                sesh.add(Matches(**match.asdict()))
+                try:
+                    sesh.commit()
+                except IntegrityError as e:
+                    # error is raised when games are shifted between pages
+                    # due to games finishing and being added to page 1
+                    print(e)
+
+    def update_database(self) -> None:
+        self.set_up_builder()
+        for x in range(1, self.max_pages + 1):
+            print(f"Scraping Page {x}")
+            self.current_page = x
+            self.parse_response()
+            time.sleep(self.delay)
 
 # class ValorantResults:
 #     def __init__(self, sqlite_db_path: str, request_delay: int = 1) -> None:
