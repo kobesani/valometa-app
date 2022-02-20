@@ -206,7 +206,7 @@ class MatchesUpdate(object):
         for match in matches_generator:
             if match.timestamp < self.latest_match:
                 self.update_finished = True
-                break
+                return
             with self.db_session_maker() as sesh:
                 sesh.add(Matches(**match.asdict()))
                 try:
@@ -229,58 +229,3 @@ class MatchesUpdate(object):
                 print(f"Update finished: {self.matches_added} matches added.")
                 return
             time.sleep(self.delay)
-
-# class ValorantResults:
-#     def __init__(self, sqlite_db_path: str, request_delay: int = 1) -> None:
-#         self.session: requests.Session = requests.Session()
-#         self.current_page: int = 1
-#         self.max_pages: Optional[int] = None
-#         self.status_code: Optional[int] = None
-#         self.delay = request_delay
-
-#         self.sqlite_db_path = sqlite_db_path
-#         self.engine = create_engine(f"sqlite:///{self.sqlite_db_path}")
-#         self.db_session_maker = sessionmaker(bind=self.engine)
-#         # makes sure tables are created (if not already)
-#         valorant_scraper_base.metadata.create_all(self.engine)
-
-#         # get most recent match
-#         with self.db_session_maker() as sesh:
-#             self.latest_match: Optional[datetime] = (
-#                 sesh
-#                 .query(Matches.timestamp)
-#                 .order_by(desc('timestamp'))
-#                 .first()
-#             )
-
-#         if self.latest_match is None:
-#             # set date to earliest date if database is freshly made
-#             self.latest_match = datetime(1970, 1, 1, tzinfo=timezone(timedelta(seconds=3600), 'UTC'))
-        
-#         else:
-#             # have to get it out of the tuple
-#             self.latest_match = self.latest_match[0].astimezone(
-#                 timezone(timedelta(seconds=3600), 'UTC')
-#             )
-
-#         self.new_matches: bool = True
-
-#     def request(self) -> Optional[requests.models.Response]:
-#         with self.session as sesh:
-#             response = sesh.get(
-#                 match_results_url.format(page=self.current_page)
-#             )
-
-#         if response.status_code != 200:
-#             self.status_code = response.status_code
-#             return None
-
-#         if self.max_pages is None:
-#             self.max_pages = int(
-#                 parsel
-#                 .Selector(response.text)
-#                 .xpath("//a[@class='btn mod-page'][last()]/text()")
-#                 .get()
-#             )
-
-#         return response
