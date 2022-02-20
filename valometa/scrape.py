@@ -8,7 +8,7 @@ from typing import Dict, Iterator, Optional
 import parsel
 import requests
 
-from sqlalchemy import create_engine, desc
+from sqlalchemy import create_engine, desc, exc
 from sqlalchemy.orm import sessionmaker
 
 from valometa import match_results_url
@@ -212,7 +212,7 @@ class MatchesUpdate(object):
                 try:
                     sesh.commit()
                     self.matches_added += 1
-                except IntegrityError as e:
+                except exc.IntegrityError as e:
                     # non-unique primary key entry
                     # error is triggered when the database is updated
                     # last match accessed is the last one added to previous db
