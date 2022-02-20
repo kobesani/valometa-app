@@ -206,18 +206,18 @@ class MatchesUpdate(object):
         for match in matches_generator:
             if match.timestamp < self.latest_match:
                 self.update_finished = True
+                print("Update should be finished now")
                 return
             with self.db_session_maker() as sesh:
                 sesh.add(Matches(**match.asdict()))
                 try:
                     sesh.commit()
-                    self.matches_added += 1
                 except exc.IntegrityError as e:
                     # non-unique primary key entry
                     # error is triggered when the database is updated
                     # last match accessed is the last one added to previous db
-                    # print(e)
-                    print("Update should be finished now.")
+                    continue
+            self.matches_added += 1
 
     def update_database(self) -> None:
         self.set_up_updater()
