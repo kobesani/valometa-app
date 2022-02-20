@@ -1,7 +1,7 @@
 import os
 import time
 
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from sqlite3 import IntegrityError
 from typing import Dict, Iterator, Optional
 
@@ -176,6 +176,7 @@ class MatchesUpdate(object):
                 .order_by(desc('timestamp'))
                 # datetime returned as tuple
                 .first()[0]
+                .astimezone(timezone(timedelta(seconds=3600), 'UTC'))
             )
 
     def request(self) -> Optional[requests.models.Response]:
