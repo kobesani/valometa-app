@@ -143,6 +143,7 @@ class MatchesUpdate(object):
         self.sqlite_db_path = sqlite_db_path
         self.latest_match: Optional[datetime] = None
         self.update_finished: bool = False
+        self.matches_added: int = 0
 
         self.current_page = 1
 
@@ -210,11 +211,13 @@ class MatchesUpdate(object):
                 sesh.add(Matches(**match.asdict()))
                 try:
                     sesh.commit()
+                    self.matches_added += 1
                 except IntegrityError as e:
                     # non-unique primary key entry
-                    # error is raised when games are shifted between pages
-                    # due to games finishing and being added to page 1
-                    print(e)
+                    # error is triggered when the database is updated
+                    # last match accessed is the last one added to previous db
+                    # print(e)
+                    print("Update should be finished now.")
 
     def update_database(self) -> None:
         self.set_up_updater()
@@ -223,7 +226,7 @@ class MatchesUpdate(object):
             self.current_page = x
             self.parse_response()
             if self.update_finished:
-                print("Update finished")
+                print(f"Update finished: {self.matches_added} matches added.")
                 return
             time.sleep(self.delay)
 
