@@ -144,6 +144,24 @@ class MatchesUpdate(object):
         self.latest_match: Optional[datetime] = None
         self.update_finished: bool = False
 
+        self.current_page = 1
+
+        # save first page to do check at the end to make sure it didn't change
+        with self.session as sesh:
+            response = sesh.get(
+                match_results_url.format(page=self.current_page)
+            )
+            self.first_page_content = response.content
+
+        self.max_pages = int(
+            parsel
+            .Selector(response.text)
+            .xpath("//a[@class='btn mod-page'][last()]/text()")
+            .get()
+        )
+
+        self.failed_requests: Dict[int, int] = {}
+
     def set_up_updater(self) -> None:
         self.engine = create_engine(f"sqlite:///{self.sqlite_db_path}")
         self.db_session_maker = sessionmaker(bind=self.engine)
