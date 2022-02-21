@@ -2,7 +2,7 @@ import os
 import time
 
 from datetime import datetime, timedelta, timezone
-from sqlite3 import IntegrityError
+from loguru import logger
 from typing import Dict, Iterator, Optional
 
 import parsel
@@ -52,22 +52,52 @@ class MatchExtractor(object):
 
 
 class MatchesBuild(object):
+    """
+    A class for building the matches table coming from the
+    vlr.gg/matches/results pages
+
+    Attributes
+    ----------
+    sqlite_db_path: str
+        the path where the sqlite database will be placed, old database at this
+        path will be deleted when running the initialization step.
+
+    delay: int
+        The number of seconds to wait between sending requests to vlr.gg.
+    
+    Methods
+    -------
+    yield_data() -> Iterator[parsel.Selector]
+        returns the cards (as selectors) under each date on the vlr.gg match results pages
+
+    set_up_builder() -> None
+        Method to delete old database, set up new one
+
+    request() -> Optional[requests.models.Response]
+        Sends request to vlg.gg/matches/results/page ...
+
+    parse_response() -> None
+        Parses response content, extracts match card information and adds it
+        to the database in the matches table.
+
+    """
+
     def __init__(
         self,
         sqlite_db_path: str = sqlite_db_path, 
-        delay: int = 1
+        delay: int = 1,
     ) -> None:
         self.session = requests.Session()
         self.delay = delay
         self.sqlite_db_path = sqlite_db_path
+        self.total_matches: int = 0
 
         self.current_page = 1
+        self.current_url = match_results_url.format(page=self.current_page)
 
         # save first page to do check at the end to make sure it didn't change
         with self.session as sesh:
-            response = sesh.get(
-                match_results_url.format(page=self.current_page)
-            )
+            response = sesh.get(self.current_url)
             self.first_page_content = response.content
 
         self.max_pages = int(
@@ -77,28 +107,29 @@ class MatchesBuild(object):
             .get()
         )
 
-        self.failed_requests: Dict[int, int] = {}
+        logger.info(f"Total number of results pages on vlr.gg = {self.max_pages}")
 
-    def set_up_builder(self) -> None:
-        try:
+        if os.path.exists(sqlite_db_path):
+            logger.info(f"Removing db at {sqlite_db_path}")
             os.remove(sqlite_db_path)
-        except FileNotFoundError:
-            pass
 
         self.engine = create_engine(f"sqlite:///{self.sqlite_db_path}")
         self.db_session_maker = sessionmaker(bind=self.engine)
         valometa_base.metadata.create_all(self.engine)
 
+        self.failed_requests: Dict[int, int] = {}
+
     def request(self) -> Optional[requests.models.Response]:
         with self.session as sesh:
-            response = sesh.get(
-                match_results_url.format(page=self.current_page)
-            )
+            response = sesh.get(self.current_url)
 
         self.status_code = response.status_code
 
         if self.status_code != 200:
             self.failed_requests[self.current_page] = self.status_code
+            logger.warning(
+                f"Request to {self.current_url} returned status code {response.status_code}"
+            )
             return None
 
         return response
@@ -117,18 +148,24 @@ class MatchesBuild(object):
                 sesh.add(Matches(**match.asdict()))
                 try:
                     sesh.commit()
-                except IntegrityError as e:
+                    self.total_matches += 1
+                except exc.IntegrityError as e:
                     # error is raised when games are shifted between pages
                     # due to games finishing and being added to page 1
                     print(e)
 
     def build_database(self) -> None:
-        self.set_up_builder()
         for x in range(1, self.max_pages + 1):
-            print(f"Scraping Page {x}")
             self.current_page = x
+            self.current_url = match_results_url.format(page=self.current_page)
+            logger.info(f"Scraping page {self.current_url}")
             self.parse_response()
             time.sleep(self.delay)
+        logger.info("Results page parsing, db table build finished")
+        logger.info(f"Number of matches parsed: {self.total_matches}")
+
+    def __call__(self) -> None:
+        self.build_database()
 
 
 class MatchesUpdate(object):
@@ -225,7 +262,9 @@ class MatchesUpdate(object):
             print(f"Scraping Page {x}")
             self.current_page = x
             self.parse_response()
+
             if self.update_finished:
                 print(f"Update finished: {self.matches_added} matches added.")
                 return
+
             time.sleep(self.delay)
