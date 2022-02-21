@@ -34,6 +34,21 @@ class PlayerIdsExtractor(object):
         ]
 
 
+class MapNamesExtractor(object):
+    def __init__(self, selector: parsel.SelectorList) -> None:
+        self.selector = selector
+
+    def yield_data(self) -> List[str]:
+        return (
+            self
+            .selector
+            .xpath("./div[@class='vm-stats-game-header']")
+            .xpath("./div[@class='map']/div/span")
+            .xpath("normalize-space(./text())")
+            .getall()
+        )
+
+
 class TeamIdsExtractor(object):
     def __init__(self, selector: parsel.Selector) -> None:
         self.selector = selector
