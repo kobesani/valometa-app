@@ -132,6 +132,10 @@ class MatchesBuild(object):
             )
             return None
 
+        # apply delay here
+        time.sleep(self.delay)
+        logger.info(f"Scraping page {self.current_url} - {response.status_code}")
+
         return response
 
     def parse_response(self) -> None:
@@ -158,9 +162,8 @@ class MatchesBuild(object):
         for x in range(1, self.max_pages + 1):
             self.current_page = x
             self.current_url = match_results_url.format(page=self.current_page)
-            logger.info(f"Scraping page {self.current_url}")
             self.parse_response()
-            time.sleep(self.delay)
+
         logger.info("Results page parsing, db table build finished")
         logger.info(f"Number of matches parsed: {self.total_matches}")
 
