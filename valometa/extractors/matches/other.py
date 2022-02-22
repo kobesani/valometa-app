@@ -64,3 +64,17 @@ class TeamIdsExtractor(object):
                 .re("/(\d+)/")
             )
         ]
+
+class GameIdsExtractor(object):
+    def __init__(self, selector: parsel.SelectorList) -> None:
+        self.selector = selector
+
+    def yield_data(self) -> List[int]:
+        return [
+            int(x) for x in (
+                self
+                .selector
+                .xpath('@data-game-id')
+                .getall()
+            )
+        ]
