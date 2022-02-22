@@ -29,6 +29,21 @@ class MatchItem:
         }
 
 
+@dataclass
+class AgentItem:
+    match_id: int
+    game_id: int
+    team_id: int
+    player_id: int
+    map_name: str
+    agent_name: str
+
+    def asdict(self) -> Dict[str, Any]:
+        return {
+            x: self.__dict__[x] for x in self.__dataclass_fields__.keys()
+        }
+
+
 valometa_base = declarative_base()
 
 class Matches(valometa_base):
@@ -41,3 +56,14 @@ class Matches(valometa_base):
     event = Column(String)
     map_stats = Column(Boolean)
     player_stats = Column(Boolean)
+
+
+class Agents(valometa_base):
+    __tablename__ = "agents"
+
+    match_id = Column(Integer, primary_key=True)
+    game_id = Column(Integer, primary_key=True)
+    team_id = Column(Integer, primary_key=True)
+    player_id = Column(Integer, primary_key=True)
+    map_name = Column(String)
+    agent_name = Column(String)
