@@ -125,10 +125,10 @@ class MatchesBuild(object):
 
         self.engine = create_engine(f"sqlite:///{self.sqlite_db_path}")
         if os.path.exists(sqlite_db_path):
-            logger.info(f"Removing db at {sqlite_db_path}")
-            # replace the following line with Matches.__table__.drop(self.engine)
-            # or valometa_base.metadata.drop_all(bind=self.engine, tables=[Matches.__table__])
-            os.remove(sqlite_db_path)
+            logger.info(f"Removing Matches table at {sqlite_db_path}")
+            valometa_base.metadata.drop_all(
+                bind=self.engine, tables=[Matches.__table__]
+            )
 
         self.db_session_maker = sessionmaker(bind=self.engine)
         valometa_base.metadata.create_all(self.engine)
@@ -294,6 +294,7 @@ class AgentsBuild(object):
         self,
         sqlite_db_path: str = sqlite_db_path, 
         delay: int = 1,
+        overwrite: bool = False
     ) -> None:
         self.session = requests.Session()
         self.delay = delay
@@ -302,8 +303,10 @@ class AgentsBuild(object):
         self.current_url: Optional[str] = None
 
         self.engine = create_engine(f"sqlite:///{self.sqlite_db_path}")
-        if os.path.exists(sqlite_db_path):
-            logger.info(f"Removing Agents table in the db at {sqlite_db_path}")
+        if overwrite:
+            logger.info(f"Removing Agents table in the db at {self.sqlite_db_path}")
+            # don't delete the table if exists, just make sure that it is there
+            # nevertheless, sometimes we may want to recreate the table
             valometa_base.metadata.drop_all(
                 bind=self.engine, tables=[Agents.__table__]
             )
@@ -345,9 +348,9 @@ class AgentsBuild(object):
             return
 
         main_select = parsel.Selector(response.text)
-        team_ids = TeamIdsExtractor(main_select).yield_data()
         game_stats = GameStatContainer(main_select).yield_data()
         game_ids = GameIdsExtractor(game_stats).yield_data()
+        team_ids = TeamIdsExtractor(main_select).yield_data()
         map_names = MapNamesExtractor(game_stats).yield_data()
         agents = AgentsExtractor(game_stats).yield_data()
         player_ids = PlayerIdsExtractor(game_stats).yield_data()
@@ -373,14 +376,26 @@ class AgentsBuild(object):
 
         with self.db_session_maker() as sesh:
             for row in data_zipped:
-                sesh.add(Agents(**AgentItem(*row).asdict()))
-                try:
-                    sesh.commit()
-                except exc.IntegrityError as e:
-                    # error is raised when games are shifted between pages
-                    # due to games finishing and being added to page 1
-                    print(e)
+                exists = (
+                    sesh
+                    .query(Agents)
+                    .filter_by(match_id=row[0], game_id=row[1])
+                    .first()
+                ) is not None
 
+                if not(exists):
+                    sesh.add(Agents(**AgentItem(*row).asdict()))
+                    try:
+                        sesh.commit()
+                    except exc.IntegrityError as e:
+                        print(e)
+
+                else:
+                    logger.warning(
+                        f"match_id={row[0]} and game_id={row[0]} already in db"
+                    )
+
+                    return
 
     def build_database(self) -> None:
         for _, row in self.matches_table.iterrows():
