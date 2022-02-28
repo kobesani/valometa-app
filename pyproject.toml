@@ -19,6 +19,7 @@ plotly = "^5.5.0"
 loguru = "^0.6.0"
 fastapi = "^0.74.1"
 uvicorn = "^0.17.5"
+Flask = "^2.0.3"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
