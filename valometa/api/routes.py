@@ -1,12 +1,11 @@
 import pandas
+import requests
 
-from datetime import date
 from typing import List
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Form
 from fastapi.middleware.wsgi import WSGIMiddleware
-from flask import Flask
-from pydantic import BaseModel
+from flask import Flask, render_template
 from sqlalchemy import create_engine
 
 from valometa.api.schemas import DateRange, NumberMatchesDay
@@ -25,18 +24,26 @@ app.mount("/", WSGIMiddleware(flask_app))
 
 @flask_app.get("/")
 def hello():
-    return 'Hello, World!'
+    # return 'Hello, World!'
+    return render_template('base.html')
 
 
 @api_app.post("/matches-per-day", response_model=List[NumberMatchesDay])
-def matches_per_day(date_range: DateRange) -> List[NumberMatchesDay]:
+# def matches_per_day(date_range: DateRange) -> List[NumberMatchesDay]:
+def matches_per_data(
+    begin: str = Form(...),
+    end: str = Form(...)
+) -> List[NumberMatchesDay]:
+
     engine = create_engine(f"sqlite:///{sqlite_db_path}")
+
     matches_df = (
         pandas
         .read_sql_table("matches", con=engine)
         .query("timestamp >= @date_range.date_begin")
         .query("timestamp <= @date_range.date_end")
     )
+
     matches_per_day_df = get_matches_per_day(matches_df)
 
     return [
