@@ -57,3 +57,28 @@ will take you to the Swagger UI which is automatically included in FastAPI.
 Here, you can also test out the form by clicking on the endpoint you want to
 test and then the 'try it out' button. This will show you the raw response from
 the endpoint as well.
+
+### Matches Scraping
+
+The `MatchesBuild` scraper builds an entirely new 'matches' database table from
+scratch and does this by pulling the results from the following page:
+`https://vlr.gg/matches/results`. On these pages, there are up to 50 "match
+cards" with information about each match being played. These are scraped and the
+data is extracted and placed into the 'matches' database table. One can build
+this table using the `build-matches-table.py` script with no arguments.
+
+If the 'matches' table was built previously and the database is located in the
+correct place ("valometa/data/vlr-gg.db"), then one can use the `MatchesUpdate`
+scraper and the `update-matches-table.py` script to get the matches that haven't
+been added since the last update or build of the table. Again, this requires
+simply running the script in the poetry environment with no arguments.
+
+
+### Agents Scraping
+
+Another scraper is currently being built to extract the agents played on each
+map for every match that is in the 'matches' table of the valometa database.
+This is almost done and will be available shortly. Follow ups include: writing
+the necessary pandas dataframe manipulations needed to answer the questions we
+wish to know about (and plot results) and write API endpoints that allow access
+of the resulting data for the front-end plotting code. Will update soon!
