@@ -20,6 +20,7 @@ class NumberMatchesDay(BaseModel):
     date_of_count: date
     count: int
 
+
 app = FastAPI()
 
 @app.get("/")
