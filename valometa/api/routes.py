@@ -1,52 +1,50 @@
 import pandas
-import requests
 
-from typing import List
-
-from fastapi import FastAPI, Form
-from fastapi.middleware.wsgi import WSGIMiddleware
-from flask import Flask, render_template
+from fastapi import FastAPI, Form, Request
+from fastapi.responses import FileResponse
+from fastapi.templating import Jinja2Templates
 from sqlalchemy import create_engine
 
-from valometa.api.schemas import DateRange, NumberMatchesDay
+from valometa.api import templates_path
+from valometa.api.schemas import NumberMatchesDay
 from valometa.data import sqlite_db_path
 from valometa.utils.data import get_matches_per_day
 
 
-api_app = FastAPI()
-flask_app = Flask(__name__)
-
-app = FastAPI(title="App Root")
-
-app.mount("/api", api_app)
-app.mount("/", WSGIMiddleware(flask_app))
+app = FastAPI(title="Valometa App")
+templates = Jinja2Templates(directory=templates_path)
 
 
-@flask_app.get("/")
-def hello():
-    # return 'Hello, World!'
-    return render_template('base.html')
+@app.get("/", response_class=FileResponse)
+def root():
+    return FileResponse(
+        f"{templates_path}/base.html", media_type="text/html"
+    )
 
 
-@api_app.post("/matches-per-day", response_model=List[NumberMatchesDay])
-# def matches_per_day(date_range: DateRange) -> List[NumberMatchesDay]:
-def matches_per_data(
+@app.post("/valometa/matches-per-day", response_class=templates.TemplateResponse)
+def matches_per_day_endpoint(
+    request: Request,
     begin: str = Form(...),
     end: str = Form(...)
-) -> List[NumberMatchesDay]:
+) -> templates.TemplateResponse:
 
     engine = create_engine(f"sqlite:///{sqlite_db_path}")
 
     matches_df = (
         pandas
         .read_sql_table("matches", con=engine)
-        .query("timestamp >= @date_range.date_begin")
-        .query("timestamp <= @date_range.date_end")
+        .query("timestamp >= @begin")
+        .query("timestamp <= @end")
     )
 
     matches_per_day_df = get_matches_per_day(matches_df)
 
-    return [
+    matches_per_day_list = [
         NumberMatchesDay(date_of_count=res['timestamp'], count=res['count'])
         for _, res in matches_per_day_df.iterrows()
     ]
+
+    return templates.TemplateResponse(
+        'table.html', {'request': request, 'data': matches_per_day_list}
+    )
