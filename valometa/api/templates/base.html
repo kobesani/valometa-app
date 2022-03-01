@@ -2,6 +2,7 @@
 <head>
   <title>Basic Template</title>
   <meta charset="UTF-8">
+  <script src="/static/js/plotly-2.9.0.min.js"></script>
 </head>
 <body>
   <form action="/valometa/matches-per-day", method="post">
@@ -11,4 +12,8 @@
     <input type="text" id="end" name="end" value="YYYY-MM-DD"><br><br>
     <input type="submit" value="Submit">
   </form>
+  <script src="/static/js/index.js"></script>
+  <button onclick="test()">FETCH</button>
+  <div id="tester" style="width:600px;height:500px;"></div>
+  <!-- <button onclick="fetch_matches_per_day()">FETCH</button> -->
 </body>
