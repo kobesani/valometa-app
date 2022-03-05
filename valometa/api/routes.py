@@ -9,7 +9,7 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy import create_engine
 
 from valometa.api import templates_path
-from valometa.api.schemas import NumberMatchesDay
+from valometa.api.schemas import DateRange, NumberMatchesDay
 from valometa.data import sqlite_db_path
 from valometa.utils.data import get_matches_per_day
 
@@ -54,15 +54,15 @@ def matches_per_day_endpoint(
         'table.html', {'request': request, 'data': matches_per_day_list}
     )
 
-@app.get("/valometa/matches-per-day-json", response_model=List[NumberMatchesDay])
-def matches_per_day_json_endpoint():
+@app.post("/valometa/matches-per-day-json", response_model=List[NumberMatchesDay])
+def matches_per_day_json_endpoint(date_range: DateRange):
     engine = create_engine(f"sqlite:///{sqlite_db_path}")
 
     matches_df = (
         pandas
         .read_sql_table("matches", con=engine)
-        # .query("timestamp >= @begin")
-        # .query("timestamp <= @end")
+        .query("timestamp >= @date_range.date_begin")
+        .query("timestamp <= @date_range.date_end")
     )
 
     matches_per_day_df = get_matches_per_day(matches_df)
