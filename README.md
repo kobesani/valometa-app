@@ -42,6 +42,11 @@ before running the script (otherwise `uvicorn` will yell at you).
 2. Matches Played Per Day ("/valometa/matches-per-day") - returns a templated
    HTML response (called `table.html`) containing a table with two columns, the date the matches were played and the number of matches played on that day. This uses jinja2 support in the FastAPI framework.
 
+3. Matches Played Per Day JSON ("/valometa/matches-per-day-json) - takes a JSON
+   POST input `{'date_begin': 'YYYY-MM-DD', 'date_end': 'YYYY-MM-DD'}` from a
+   date range picker and returns a JSON which is ultimately used to plot the
+   number of matches played per day over the time period specified in the input.
+
 #### Automatic Documentation
 
 Once the app is running, using `run-app.sh` as described above, you can navigate
