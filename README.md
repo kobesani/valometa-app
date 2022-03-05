@@ -44,8 +44,9 @@ before running the script (otherwise `uvicorn` will yell at you).
 
 3. Matches Played Per Day JSON ("/valometa/matches-per-day-json) - takes a JSON
    POST input `{'date_begin': 'YYYY-MM-DD', 'date_end': 'YYYY-MM-DD'}` from a
-   date range picker and returns a JSON which is ultimately used to plot the
-   number of matches played per day over the time period specified in the input.
+   [daterangepicker](https://www.daterangepicker.com/) and returns a JSON which
+   is ultimately used to plot the number of matches played per day over the time
+   period specified in the input.
 
 #### Automatic Documentation
 
