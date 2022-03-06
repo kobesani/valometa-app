@@ -17,25 +17,33 @@ async function postData(url = '', data = {}) {
       body: JSON.stringify(data) // body data type must match "Content-Type" header
     });
     return response.json(); // parses JSON response into native JavaScript objects
-  }
+}
 
 
-$(function() {
-    $('input[name="daterange"]').daterangepicker({
-      opens: 'left'
-    }, async function(start, end, label) {
-        let timeFormat = "YYYY-MM-DD";
-        let outputData = {
-          date_begin : start.format(timeFormat),
-          date_end : end.format(timeFormat)
-        };
-        console.log(outputData);
-        let response_data = await postData(
-            "/valometa/matches-per-day-json", outputData
-        );
-        plot(response_data);
-    });
-  });
+const picker = new Litepicker({ 
+  firstDay: 1,
+  format: "YYYY/MM/DD",
+  numberOfMonths: 2,
+  numberOfColumns: 2,
+  autoApply: true,
+  showTooltip: false,
+  mobileFriendly: true,
+  hotelMode: true,
+  singleMode: false,
+  element: document.getElementById('daterange')
+});
+
+
+async function postDates() {
+  let outputData = {
+    date_begin : picker.getStartDate().format('YYYY-MM-DD'),
+    date_end : picker.getEndDate().format('YYYY-MM-DD')
+  };
+  let response_data = await postData(
+    "/valometa/matches-per-day-json", outputData
+  );
+  plot(response_data);
+};
 
 
 async function plot(data = []) {
@@ -46,7 +54,7 @@ async function plot(data = []) {
         xValues.push(element['date_of_count']);
         yValues.push(element['count']);
     });
-    let testerEl = document.getElementById("tester");
+    let plotElement = document.getElementById("plot-element");
 
     let trace = {
         x: xValues,
@@ -59,43 +67,5 @@ async function plot(data = []) {
         title: 'Line Plot Test'
     };
 
-    Plotly.newPlot(testerEl, dataToPlot, layout)
-}
-
-
-async function fetch_matches_per_day() {
-    let fetched_data;
-
-    await fetch("/valometa/matches-per-day-json")
-      .then(response => response.json())
-      .then(data => fetched_data = data);
-    //   .then(() => console.log(fetched_data));
-
-    return fetched_data;
-}
-
-
-async function test() {
-    let data = await fetch_matches_per_day();
-    let xValues = [];
-    let yValues = [];
-
-    data.forEach(element => {
-        xValues.push(element['date_of_count']);
-        yValues.push(element['count']);
-    });
-    let testerEl = document.getElementById("tester");
-
-    let trace = {
-        x: xValues,
-        y: yValues,
-        mode: 'lines'
-    };
-
-    let dataToPlot = [trace];
-    let layout = {
-        title: 'Line Plot Test'
-    };
-
-    Plotly.newPlot(testerEl, dataToPlot, layout)
+    Plotly.newPlot(plotElement, dataToPlot, layout)
 }
