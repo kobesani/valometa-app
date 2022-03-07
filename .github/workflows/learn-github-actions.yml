@@ -51,6 +51,6 @@ jobs:
       - name: Run tests
         run: |
           source .venv/bin/activate
-          ./run-tests.sh
+          bash run-tests.sh
       # pytest tests/
       # coverage report
