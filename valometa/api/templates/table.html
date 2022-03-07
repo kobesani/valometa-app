@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<head>
+  <title>Basic Template</title>
+  <meta charset="UTF-8">
+</head>
+<body>
+  <table>
+    {% for item in data %}
+    <tr>
+      <td>{{item.date_of_count}}</td>
+      <td>{{item.count}}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</body>
