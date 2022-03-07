@@ -2,6 +2,9 @@
 <head>
   <title>Basic Template</title>
   <meta charset="UTF-8">
+  <script src="/static/js/plotly-2.9.0.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/litepicker.js"></script>
 </head>
 <body>
   <form action="/valometa/matches-per-day", method="post">
@@ -11,4 +14,8 @@
     <input type="text" id="end" name="end" value="YYYY-MM-DD"><br><br>
     <input type="submit" value="Submit">
   </form>
+  <input type="text" id="daterange">
+  <button onclick="postDates()">Plot!</button>
+  <script src="/static/js/index.js"></script>
+  <div id="plot-element" style="width:600px;height:500px;"></div>
 </body>
