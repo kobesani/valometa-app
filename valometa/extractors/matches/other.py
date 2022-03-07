@@ -78,3 +78,17 @@ class GameIdsExtractor(object):
                 .getall()
             )
         ]
+
+
+class PatchExtractor(object):
+    def __init__(self, selector: parsel.Selector) -> None:
+        self.selector = selector
+
+    def yield_data(self) -> str:
+        return (
+            self
+            .selector
+            .xpath("//div/div[@class='wf-tooltip']")
+            .xpath("normalize-space(./text())")
+            .get()
+        )

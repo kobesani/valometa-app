@@ -37,6 +37,7 @@ class AgentItem:
     player_id: int
     map_name: str
     agent_name: str
+    patch: str
 
     def asdict(self) -> Dict[str, Any]:
         return {
@@ -45,6 +46,7 @@ class AgentItem:
 
 
 valometa_base = declarative_base()
+
 
 class Matches(valometa_base):
     __tablename__ = "matches"
@@ -67,3 +69,4 @@ class Agents(valometa_base):
     player_id = Column(Integer, primary_key=True)
     map_name = Column(String)
     agent_name = Column(String)
+    patch = Column(String, nullable=True)

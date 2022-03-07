@@ -20,6 +20,7 @@ from valometa.extractors.matches.other import (
     AgentsExtractor,
     GameIdsExtractor,
     MapNamesExtractor,
+    PatchExtractor,
     PlayerIdsExtractor,
     TeamIdsExtractor
 )
@@ -36,7 +37,9 @@ from valometa.extractors.results.single import (
 )
 from valometa.extractors.results.special import Timestamp
 
-from valometa.models.database import AgentItem, Agents, MatchItem, Matches, valometa_base
+from valometa.models.database import (
+    AgentItem, Agents, MatchItem, Matches, valometa_base
+)
 
 
 class MatchExtractor(object):
@@ -354,8 +357,10 @@ class AgentsBuild(object):
         map_names = MapNamesExtractor(game_stats).yield_data()
         agents = AgentsExtractor(game_stats).yield_data()
         player_ids = PlayerIdsExtractor(game_stats).yield_data()
+        patch = PatchExtractor(main_select).yield_data()
 
         match_ids_expanded = [int(response.url.split("/")[3])] * (len(map_names) * 10)
+        patch_expanded = [patch] * (len(map_names) * 10)
 
         team_ids_expanded = []
         for x in range(len(map_names)):
@@ -371,7 +376,7 @@ class AgentsBuild(object):
 
         data_zipped = zip(
             match_ids_expanded, game_ids_expanded, team_ids_expanded,
-            player_ids, map_names_expanded, agents
+            player_ids, map_names_expanded, agents, patch_expanded
         )
 
         with self.db_session_maker() as sesh:
