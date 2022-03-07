@@ -384,7 +384,12 @@ class AgentsBuild(object):
                 exists = (
                     sesh
                     .query(Agents)
-                    .filter_by(match_id=row[0], game_id=row[1])
+                    .filter_by(
+                        match_id=row[0],
+                        game_id=row[1],
+                        team_id=row[2],
+                        player_id=row[3]
+                    )
                     .first()
                 ) is not None
 
@@ -403,7 +408,12 @@ class AgentsBuild(object):
                     return
 
     def build_database(self) -> None:
-        for _, row in self.matches_table.iterrows():
+        for _, row in (
+            self
+            .matches_table
+            .sort_values('timestamp',ascending=False)
+            .iterrows()
+        ):
             if row.player_stats and row.map_stats:
                 self.current_url = self.base_url.format(url=row.url)
                 self.parse_response()

@@ -37,7 +37,7 @@ class AgentItem:
     player_id: int
     map_name: str
     agent_name: str
-    patch: str
+    patch: Optional[str]
 
     def asdict(self) -> Dict[str, Any]:
         return {
