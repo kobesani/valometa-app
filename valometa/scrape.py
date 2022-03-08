@@ -41,6 +41,11 @@ from valometa.models.database import (
     AgentItem, Agents, MatchItem, Matches, valometa_base
 )
 
+timestamp_now = datetime.now().strftime("%Y-%m-%dT%H%M%S-%fZ")
+
+logger_out = f"{os.path.dirname(sqlite_db_path)}/log-{timestamp_now}.txt"
+logger.add(logger_out)
+
 
 class MatchExtractor(object):
     def __init__(self, selector: parsel.Selector) -> None:
@@ -318,6 +323,7 @@ class AgentsBuild(object):
         valometa_base.metadata.create_all(self.engine)
 
         self.matches_table = pandas.read_sql_table('matches', con=self.engine)
+        self.agents_table = pandas.read_sql_table('agents', con=self.engine)
 
         if self.matches_table.empty:
             logger.warning("Matches table is empty")
@@ -411,12 +417,15 @@ class AgentsBuild(object):
         for _, row in (
             self
             .matches_table
-            .sort_values('timestamp',ascending=False)
+            .merge(self.agents_table, on=['match_id'], how='left')
+            .sort_values('timestamp', ascending=False)
+            .query("player_stats and map_stats")
+            .query("game_id.isna()")
             .iterrows()
         ):
-            if row.player_stats and row.map_stats:
-                self.current_url = self.base_url.format(url=row.url)
-                self.parse_response()
+
+            self.current_url = self.base_url.format(url=row.url)
+            self.parse_response()
 
         logger.info("Results page parsing, db table build finished")
         # logger.info(f"Number of matches parsed: {self.total_matches}")
