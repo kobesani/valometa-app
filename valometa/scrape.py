@@ -1,5 +1,5 @@
-from lib2to3.pgen2.token import OP
 import os
+import shutil
 import time
 
 from datetime import datetime, timedelta, timezone
@@ -302,7 +302,8 @@ class AgentsBuild(object):
         self,
         sqlite_db_path: str = sqlite_db_path, 
         delay: int = 1,
-        overwrite: bool = False
+        overwrite: bool = False,
+        backup: bool = False
     ) -> None:
         self.session = requests.Session()
         self.delay = delay
@@ -329,6 +330,9 @@ class AgentsBuild(object):
             logger.warning("Matches table is empty")
 
         self.failed_requests: Dict[int, int] = {}
+
+        if backup:
+            self.create_backup_db()
 
     def request(self) -> Optional[requests.models.Response]:
         with self.session as sesh:
@@ -428,4 +432,46 @@ class AgentsBuild(object):
             self.parse_response()
 
         logger.info("Results page parsing, db table build finished")
-        # logger.info(f"Number of matches parsed: {self.total_matches}")
+
+    def create_backup_db(self) -> None:
+        backup_fn = f"{self.sqlite_db_path}-backup-{timestamp_now}"
+        logger.info(f"creating backup @backup_fn")
+        shutil.copyfile(self.sqlite_db_path, backup_fn)
+
+    def fix_patch_info(self) -> None:
+        match_agents_merged_sorted = (
+            self
+            .matches_table
+            .merge(self.agents_table, on=['match_id'], how='left')
+            .sort_values('timestamp', ascending=False)
+            .query("player_stats and map_stats")
+        )
+
+        rows_to_keep = (
+            match_agents_merged_sorted
+            .query("~game_id.isna() and ~patch.isna()")
+            .filter(self.agents_table.columns)
+        )
+
+        rows_to_fix = (
+            match_agents_merged_sorted
+            .query("~game_id.isna() and patch.isna()")
+            ['url']
+            .unique()
+        )
+
+        rows_to_keep.to_sql(
+            'agents', con=self.engine, if_exists='replace', index=False
+        )
+
+        self.agents_table = rows_to_keep
+
+        self.engine = create_engine(f"sqlite:///{self.sqlite_db_path}")
+        self.db_session_maker = sessionmaker(bind=self.engine)
+        valometa_base.metadata.create_all(self.engine)
+
+        logger.info(f"Fixing {len(rows_to_fix)} games")
+
+        for url in rows_to_fix:
+            self.current_url = self.base_url.format(url=url)
+            self.parse_response()

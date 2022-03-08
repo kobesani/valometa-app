@@ -85,10 +85,23 @@ class PatchExtractor(object):
         self.selector = selector
 
     def yield_data(self) -> str:
-        return (
+        first_try = (
             self
             .selector
             .xpath("//div/div[@class='wf-tooltip']")
             .xpath("normalize-space(./text())")
             .get()
         )
+
+        if first_try is None:
+            return (
+                self
+                .selector
+                .xpath("//div[@class='match-header-date']")
+                .xpath("./div[@style='margin-top: 4px;']")
+                .xpath("./div[@style='font-style: italic;']")
+                .xpath("normalize-space(./text())")
+                .get()
+            )
+
+        return first_try
