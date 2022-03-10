@@ -20,6 +20,7 @@ loguru = "^0.6.0"
 fastapi = "^0.74.1"
 uvicorn = "^0.17.5"
 python-multipart = "^0.0.5"
+psycopg2 = "^2.9.3"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
