@@ -1,11 +1,47 @@
+import enum
+
 from datetime import date
-from typing import List
+from typing import List, Literal
 
 from pydantic import BaseModel, confloat, validator, ValidationError, root_validator
 
 from valometa.data.raw import (
-    min_patch_version, max_patch_version
+    min_patch_version,
+    max_patch_version,
 )
+
+
+class MapOptions(str, enum.Enum):
+    Fracture = 'Fracture'
+    Split = 'Split'
+    Ascent = 'Ascent'
+    Breeze = 'Breeze'
+    Bind = 'Bind'
+    Icebox = 'Icebox'
+    Haven = 'Haven'
+    All = 'All'
+
+
+class AgentOptions(str, enum.Enum):
+    brimstone = "brimstone"
+    viper = "viper"
+    omen = "omen"
+    killjoy = "killjoy"
+    cypher = "cypher"
+    sova = "sova"
+    sage = "sage"
+    phoenix = "phoenix"
+    jett = "jett"
+    reyna = "reyna"
+    raze = "raze"
+    breach = "breach"
+    skye = "skye"
+    yoru = "yoru"
+    astra = "astra"
+    kayo = "kayo"
+    chamber = "chamber"
+    neon = "neon"
+
 
 patch_constraint = confloat(
     ge=min_patch_version, le=max_patch_version
@@ -26,7 +62,7 @@ class PatchConstraintError(Exception):
 
 
 class MapPatchFilter(BaseModel):
-    map_name: str
+    map_name: MapOptions
     patch_lower: patch_constraint = min_patch_version
     patch_upper: patch_constraint = max_patch_version
 
@@ -46,4 +82,12 @@ class MapPatchFilter(BaseModel):
         return values
 
 
+class AgentPickCount(BaseModel):
+    agent_name: AgentOptions
+    pick_count: int
 
+
+class AllAgentPicks(BaseModel):
+    pick_rates: List[AgentPickCount]
+    map_name: MapOptions
+    patches: List[patch_constraint]
