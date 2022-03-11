@@ -9,15 +9,25 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy import create_engine
 
 from valometa.api import templates_path
-from valometa.api.schemas import DateRange, NumberMatchesDay
+from valometa.api.schemas import (
+    AgentPickCount,
+    AllAgentPicks,
+    DateRange,
+    NumberMatchesDay,
+    MapPatchFilter
+)
 from valometa.data import sqlite_db_path
-from valometa.utils.data import get_matches_per_day
-
+from valometa.data.raw import valorant_patches_table
+from valometa.utils.data import (
+    get_matches_per_day, get_agent_pick_rates
+)
 
 app = FastAPI(title="Valometa App")
 templates = Jinja2Templates(directory=templates_path)
 
-app.mount("/static", StaticFiles(directory=templates_path), name="static")
+app.mount(
+    "/static", StaticFiles(directory=templates_path), name="static"
+)
 
 
 @app.get("/", response_class=FileResponse)
@@ -39,22 +49,29 @@ def matches_per_day_endpoint(
     matches_df = (
         pandas
         .read_sql_table("matches", con=engine)
-        .query("timestamp >= @begin")
-        .query("timestamp <= @end")
+        .query(f"timestamp >= {begin}")
+        .query(f"timestamp <= {end}")
     )
 
     matches_per_day_df = get_matches_per_day(matches_df)
 
     matches_per_day_list = [
-        NumberMatchesDay(date_of_count=res['timestamp'], count=res['count'])
-        for _, res in matches_per_day_df.iterrows()
+        NumberMatchesDay(
+            date_of_count=res['timestamp'], count=res['count']
+        ) for _, res in matches_per_day_df.iterrows()
     ]
 
     return templates.TemplateResponse(
-        'table.html', {'request': request, 'data': matches_per_day_list}
+        'table.html', {
+            'request': request, 'data': matches_per_day_list
+        }
     )
 
-@app.post("/valometa/matches-per-day-json", response_model=List[NumberMatchesDay])
+
+@app.post(
+    "/valometa/matches-per-day-json",
+    response_model=List[NumberMatchesDay]
+)
 def matches_per_day_json_endpoint(date_range: DateRange):
     engine = create_engine(f"sqlite:///{sqlite_db_path}")
 
@@ -68,6 +85,40 @@ def matches_per_day_json_endpoint(date_range: DateRange):
     matches_per_day_df = get_matches_per_day(matches_df)
 
     return [
-        NumberMatchesDay(date_of_count=res['timestamp'], count=res['count'])
-        for _, res in matches_per_day_df.iterrows()
+        NumberMatchesDay(
+            date_of_count=res['timestamp'], count=res['count']
+        ) for _, res in matches_per_day_df.iterrows()
     ]
+
+
+@app.post(
+    "/valometa/agents-map-patch-rate",
+    response_model=AllAgentPicks
+)
+def agents_per_map_per_patch(picks_filter: MapPatchFilter):
+    engine = create_engine(f"sqlite:///{sqlite_db_path}")
+
+    agent_pick_rates = get_agent_pick_rates(
+        pandas.read_sql('agents', con=engine),
+        picks_filter.patch_lower,
+        picks_filter.patch_upper,
+        map_name=picks_filter.map_name
+    )
+
+    selected_patches = (
+        valorant_patches_table
+        .query("Patch >= @picks_filter.patch_lower")
+        .query("Patch <= @picks_filter.patch_upper")
+        .Patch
+        .to_list()
+    )
+
+    return AllAgentPicks(
+        map_name=picks_filter.map_name,
+        patches=selected_patches,
+        pick_rates=[
+            AgentPickCount(
+                agent_name=row.agent_name, pick_count=row.pick_rate
+            ) for _, row in agent_pick_rates.iterrows()
+        ]
+    )

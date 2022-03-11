@@ -1,0 +1,19 @@
+Name	Type	Origin	Patch
+Brimstone	Controller	USA	Beta
+Viper	Controller	United States of America	Beta
+Omen	Controller	Unknown	Beta
+Killjoy	Sentinel	Germany	1.05
+Cypher	Sentinel	Morocco	Beta
+Sova	Initiator	Russia	Beta
+Sage	Sentinel	China	Beta
+Phoenix	Duelist	United Kingdom	Beta
+Jett	Duelist	South Korea	Beta
+Reyna	Duelist	Mexico	1.00
+Raze	Duelist	Brazil	Beta
+Breach	Initiator	Sweden	Beta
+Skye	Initiator	Australia	1.11
+Yoru	Duelist	Japan	2.00
+Astra	Controller	Ghana	2.04
+KAY/O	Initiator	Unknown	3.00
+Chamber	Sentinel	France	3.10
+Neon	Duelist	Philippines	4.00

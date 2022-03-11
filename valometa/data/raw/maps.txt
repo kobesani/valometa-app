@@ -1,0 +1,8 @@
+Name	Location	Patch
+Fracture	United States of America	3.05
+Breeze	Atlantic Ocean	2.08
+Icebox	Russia	1.10
+Bind	Morocco	Beta
+Haven	Bhutan	Beta
+Split	Japan	Beta
+Ascent	Italy	1.00

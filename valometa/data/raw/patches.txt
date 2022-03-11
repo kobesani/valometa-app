@@ -1,0 +1,45 @@
+Patch	Release	Size	Release Highlights
+4.04	01 March 2022	N/A	N/A
+4.03	15 February 2022	N/A	N/A
+4.02	01 February 2022	N/A	N/A
+4.01	19 January 2022	N/A	N/A
+4.00	11 January 2022	N/A	N/A
+3.12	07 December 2021	N/A	N/A
+3.10	16 November 2021		New Agent: Chamber Competitive queue 5-stack for any rank Observers Features
+3.09	2 November 2021		Classic nerf Bug fixes Fracture changes
+3.08	19 October 2021		Bug Fixes Esports Features
+3.07	5 October 2021		Bug Fixes
+3.06	21 September 2021		KAY/O Buffs Skye, Jett Nerfs Map Updates Esports Features Bug Fixes
+3.05	8 September 2021		New map: Fracture Brimstone, Breach, Sova Buffs Killjoy, Raze Nerfs Esports Features Bug Fixes
+3.04	24 August 2021		Bug Fixes Gameplay Technology Updates Esports Features
+3.03	10 August 2021		Bug Fixes
+3.02	20 July 2021		Bug Fixes
+3.01	7 July 2021		Bug Fixes
+3.00	22 June 2021	1.5 GB	New Agent: KAY/O All agents tweaks All weapons prize changes Run and shoot nerfed Round rollback for custom games
+2.11	8 June 2021		System Updates Bug Fixes Replication is back
+2.09	11 May 2021		Viper nerf Breeze competitive Tactical timeouts Bug fixes
+2.08	27 April 2021		Bug Fixes Coach Slots New map: Breeze
+2.07	13 April 2021		Astra Buffs Raze Tweaks Viper Bug Fix
+2.06	31 March 2021		Viper and Yoru Buffs Bucky Tweaks HRTF Update
+2.05	16 March 2021	1.1 GB	Competitive Updates AFK Detection Bug Fixes
+2.04	2 March 2021	1.4 GB	New Agent: Astra Competitive Updates
+2.03	February 2021	1.01 GB	Changes to Reyna, Yoru, Brimstone and Phoenix Changes to Marshal, Stinger and Frenzy New game mode: Escalation
+2.02	2 February 2021	1.8 GB	Rifle Movement Accuracy update Competitive Updates Bug Fixes
+2.01	20 January 2021	1.2 GB	Jett nerf Major Split changes Bug Fixes
+2.00	12 January 2021	1.6 GB	New Agent: Yoru Omen nerf Brimstone Buff Classic changes New ranked system Leaderboards
+1.14	8 December 2020	1.6 GB	Sage changes Icebox changes Winter event Observer update
+1.12	10 November 2020	1.2 GB	
+1.11	27 October 2020	1.2 GB	New agent: Skye Breach buff Cypher and Killjoy nerfs
+1.10	13 October 2020		New map: Icebox Preferred servers for competitive games Changes to deathmatch games Up to 12 observers for custom lobby games
+1.09	29 September 2020	1.1 GB	Opeartor Nerf Viper and Brimstone buffs Jett and Reyna nerfs
+1.08	15 September 2020	989.8 MB	Guardian buff Map rotation change Raze changes
+1.07	1 September 2020	1.0 GB	Sage, Killjoy nerfs Breach, Viper, Sova buffs Shotguns nerf Vandal buff Remake match
+1.06	20 August 2020	739.3 MB	Air Shotgun Update Bug Fixes
+1.05	4 August 2020	1.3 GB	New agent: Killjoy Raze nerf Act II start Deathmatch
+1.03	7 July 2020	1.3 GB	Guardian Buff Win-by-two overtime
+1.02	23 June 2020	1.1 GB	Competitive mode Viper buff Map Updates
+1.01	9 June 2020	1.0 GB	Sage Nerf Spike Rush Update Bug Fixes
+1.00	2 June 2020	2.0 GB	New Agent: Reyna New Map: Ascent Agents Update Split Mid Update Bug fixes
+0.50	12 May 2020	1.2 GB	Gameplay and Balance Agent Updates HUD & UI Quality of life Character Updates Map Updates Bug fixes: In-game Bug fixes: Game client
+0.49	28 April 2020	2.0 GB	Gameplay and Balance Character Updates Map Updates Competitive Updates Observer Mode HUD & UI Quality of life Bug fixes
+0.47	21 April 2020	419.7 MB	Gameplay and Balance Map Updates Quality of life Bug fixes

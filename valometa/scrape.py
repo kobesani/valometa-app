@@ -1,10 +1,12 @@
 import os
+import shutil
 import time
 
 from datetime import datetime, timedelta, timezone
 from loguru import logger
 from typing import Dict, Iterator, Optional
 
+import pandas
 import parsel
 import requests
 
@@ -13,6 +15,18 @@ from sqlalchemy.orm import sessionmaker
 
 from valometa import match_results_url
 from valometa.data import sqlite_db_path
+
+from valometa.extractors.matches.other import (
+    AgentsExtractor,
+    GameIdsExtractor,
+    MapNamesExtractor,
+    PatchExtractor,
+    PlayerIdsExtractor,
+    TeamIdsExtractor
+)
+
+from valometa.extractors.matches.selectors import GameStatContainer
+
 from valometa.extractors.results.other import DateExtractor
 from valometa.extractors.results.selectors import CardExtractor
 from valometa.extractors.results.single import (
@@ -22,7 +36,15 @@ from valometa.extractors.results.single import (
     PlayerStats
 )
 from valometa.extractors.results.special import Timestamp
-from valometa.models.database import MatchItem, Matches, valometa_base
+
+from valometa.models.database import (
+    AgentItem, Agents, MatchItem, Matches, valometa_base
+)
+
+timestamp_now = datetime.now().strftime("%Y-%m-%dT%H%M%S-%fZ")
+
+logger_out = f"{os.path.dirname(sqlite_db_path)}/log-{timestamp_now}.txt"
+logger.add(logger_out)
 
 
 class MatchExtractor(object):
@@ -109,11 +131,13 @@ class MatchesBuild(object):
 
         logger.info(f"Total number of results pages on vlr.gg = {self.max_pages}")
 
-        if os.path.exists(sqlite_db_path):
-            logger.info(f"Removing db at {sqlite_db_path}")
-            os.remove(sqlite_db_path)
-
         self.engine = create_engine(f"sqlite:///{self.sqlite_db_path}")
+        if os.path.exists(sqlite_db_path):
+            logger.info(f"Removing Matches table at {sqlite_db_path}")
+            valometa_base.metadata.drop_all(
+                bind=self.engine, tables=[Matches.__table__]
+            )
+
         self.db_session_maker = sessionmaker(bind=self.engine)
         valometa_base.metadata.create_all(self.engine)
 
@@ -271,3 +295,183 @@ class MatchesUpdate(object):
                 return
 
             time.sleep(self.delay)
+
+
+class AgentsBuild(object):
+    def __init__(
+        self,
+        sqlite_db_path: str = sqlite_db_path, 
+        delay: int = 1,
+        overwrite: bool = False,
+        backup: bool = False
+    ) -> None:
+        self.session = requests.Session()
+        self.delay = delay
+        self.sqlite_db_path = sqlite_db_path
+        self.base_url: str = "https://www.vlr.gg{url}"
+        self.current_url: Optional[str] = None
+
+        self.engine = create_engine(f"sqlite:///{self.sqlite_db_path}")
+        if overwrite:
+            logger.info(f"Removing Agents table in the db at {self.sqlite_db_path}")
+            # don't delete the table if exists, just make sure that it is there
+            # nevertheless, sometimes we may want to recreate the table
+            valometa_base.metadata.drop_all(
+                bind=self.engine, tables=[Agents.__table__]
+            )
+
+        self.db_session_maker = sessionmaker(bind=self.engine)
+        valometa_base.metadata.create_all(self.engine)
+
+        self.matches_table = pandas.read_sql_table('matches', con=self.engine)
+        self.agents_table = pandas.read_sql_table('agents', con=self.engine)
+
+        if self.matches_table.empty:
+            logger.warning("Matches table is empty")
+
+        self.failed_requests: Dict[int, int] = {}
+
+        if backup:
+            self.create_backup_db()
+
+    def request(self) -> Optional[requests.models.Response]:
+        with self.session as sesh:
+            response = sesh.get(self.current_url)
+
+        if response.status_code != 200:
+            self.failed_requests[self.current_url] = response.status_code
+            logger.warning(
+                f"Request to {self.current_url} returned status code {response.status_code}"
+            )
+            return None
+
+        if self.delay > 0:
+            time.sleep(self.delay)
+
+        logger.info(
+            f"Scraping page {self.current_url} - {response.status_code}"
+        )
+
+        return response
+
+    def parse_response(self) -> None:
+        response = self.request()
+
+        if response is None:
+            return
+
+        main_select = parsel.Selector(response.text)
+        game_stats = GameStatContainer(main_select).yield_data()
+        game_ids = GameIdsExtractor(game_stats).yield_data()
+        team_ids = TeamIdsExtractor(main_select).yield_data()
+        map_names = MapNamesExtractor(game_stats).yield_data()
+        agents = AgentsExtractor(game_stats).yield_data()
+        player_ids = PlayerIdsExtractor(game_stats).yield_data()
+        patch = PatchExtractor(main_select).yield_data()
+
+        match_ids_expanded = [int(response.url.split("/")[3])] * (len(map_names) * 10)
+        patch_expanded = [patch] * (len(map_names) * 10)
+
+        team_ids_expanded = []
+        for x in range(len(map_names)):
+            team_ids_expanded += [team_ids[0]] * 5 + [team_ids[-1]] * 5
+
+        map_names_expanded = []
+        for x in range(len(map_names)):
+            map_names_expanded += [map_names[x]] * 10
+
+        game_ids_expanded = []
+        for x in range(len(map_names)):
+            game_ids_expanded += [game_ids[x]] * 10
+
+        data_zipped = zip(
+            match_ids_expanded, game_ids_expanded, team_ids_expanded,
+            player_ids, map_names_expanded, agents, patch_expanded
+        )
+
+        with self.db_session_maker() as sesh:
+            for row in data_zipped:
+                exists = (
+                    sesh
+                    .query(Agents)
+                    .filter_by(
+                        match_id=row[0],
+                        game_id=row[1],
+                        team_id=row[2],
+                        player_id=row[3]
+                    )
+                    .first()
+                ) is not None
+
+                if not(exists):
+                    sesh.add(Agents(**AgentItem(*row).asdict()))
+                    try:
+                        sesh.commit()
+                    except exc.IntegrityError as e:
+                        print(e)
+
+                else:
+                    logger.warning(
+                        f"match_id={row[0]} and game_id={row[0]} already in db"
+                    )
+
+                    return
+
+    def build_database(self) -> None:
+        for _, row in (
+            self
+            .matches_table
+            .merge(self.agents_table, on=['match_id'], how='left')
+            .sort_values('timestamp', ascending=False)
+            .query("player_stats and map_stats")
+            .query("game_id.isna()")
+            .iterrows()
+        ):
+
+            self.current_url = self.base_url.format(url=row.url)
+            self.parse_response()
+
+        logger.info("Results page parsing, db table build finished")
+
+    def create_backup_db(self) -> None:
+        backup_fn = f"{self.sqlite_db_path}-backup-{timestamp_now}"
+        logger.info(f"creating backup @backup_fn")
+        shutil.copyfile(self.sqlite_db_path, backup_fn)
+
+    def fix_patch_info(self) -> None:
+        match_agents_merged_sorted = (
+            self
+            .matches_table
+            .merge(self.agents_table, on=['match_id'], how='left')
+            .sort_values('timestamp', ascending=False)
+            .query("player_stats and map_stats")
+        )
+
+        rows_to_keep = (
+            match_agents_merged_sorted
+            .query("~game_id.isna() and ~patch.isna()")
+            .filter(self.agents_table.columns)
+        )
+
+        rows_to_fix = (
+            match_agents_merged_sorted
+            .query("~game_id.isna() and patch.isna()")
+            ['url']
+            .unique()
+        )
+
+        rows_to_keep.to_sql(
+            'agents', con=self.engine, if_exists='replace', index=False
+        )
+
+        self.agents_table = rows_to_keep
+
+        self.engine = create_engine(f"sqlite:///{self.sqlite_db_path}")
+        self.db_session_maker = sessionmaker(bind=self.engine)
+        valometa_base.metadata.create_all(self.engine)
+
+        logger.info(f"Fixing {len(rows_to_fix)} games")
+
+        for url in rows_to_fix:
+            self.current_url = self.base_url.format(url=url)
+            self.parse_response()

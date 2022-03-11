@@ -2,6 +2,13 @@
 
 An app for tracking the valorant agent meta in the esports scene.
 
+## Ideas
+
+There are a lot of matches without patch information. With those, perhaps
+we can try to infer the patch from the agent selection for the match and the
+date that the match was played.
+
+
 ## Current Status
 
 A streamlit app exists for plotting the number of matches played per day using
