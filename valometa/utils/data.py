@@ -41,7 +41,9 @@ def get_agent_pick_rates(
     )
 
     if map_name:
-        map_filter = patch_filter.query(f'map_name == \'{map_name}\'')
+        map_filter = patch_filter.query(
+            f'map_name == \'{map_name}\''
+        )
     
     else:
         map_filter = patch_filter

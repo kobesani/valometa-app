@@ -1,9 +1,9 @@
 import enum
 
 from datetime import date
-from typing import List, Literal
+from typing import List
 
-from pydantic import BaseModel, confloat, validator, ValidationError, root_validator
+from pydantic import BaseModel, confloat, root_validator
 
 from valometa.data.raw import (
     min_patch_version,

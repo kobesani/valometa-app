@@ -10,7 +10,11 @@ from sqlalchemy import create_engine
 
 from valometa.api import templates_path
 from valometa.api.schemas import (
-    AgentPickCount, AllAgentPicks, DateRange, NumberMatchesDay, MapPatchFilter
+    AgentPickCount,
+    AllAgentPicks,
+    DateRange,
+    NumberMatchesDay,
+    MapPatchFilter
 )
 from valometa.data import sqlite_db_path
 from valometa.data.raw import valorant_patches_table
@@ -52,12 +56,15 @@ def matches_per_day_endpoint(
     matches_per_day_df = get_matches_per_day(matches_df)
 
     matches_per_day_list = [
-        NumberMatchesDay(date_of_count=res['timestamp'], count=res['count'])
-        for _, res in matches_per_day_df.iterrows()
+        NumberMatchesDay(
+            date_of_count=res['timestamp'], count=res['count']
+        ) for _, res in matches_per_day_df.iterrows()
     ]
 
     return templates.TemplateResponse(
-        'table.html', {'request': request, 'data': matches_per_day_list}
+        'table.html', {
+            'request': request, 'data': matches_per_day_list
+        }
     )
 
 
