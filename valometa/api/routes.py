@@ -9,7 +9,9 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy import create_engine
 
 from valometa.api import templates_path
-from valometa.api.schemas import DateRange, NumberMatchesDay
+from valometa.api.schemas import (
+    DateRange, NumberMatchesDay, MapPatchFilter
+)
 from valometa.data import sqlite_db_path
 from valometa.utils.data import get_matches_per_day
 
@@ -39,8 +41,8 @@ def matches_per_day_endpoint(
     matches_df = (
         pandas
         .read_sql_table("matches", con=engine)
-        .query("timestamp >= @begin")
-        .query("timestamp <= @end")
+        .query(f"timestamp >= {begin}")
+        .query(f"timestamp <= {end}")
     )
 
     matches_per_day_df = get_matches_per_day(matches_df)
@@ -61,8 +63,8 @@ def matches_per_day_json_endpoint(date_range: DateRange):
     matches_df = (
         pandas
         .read_sql_table("matches", con=engine)
-        .query("timestamp >= @date_range.date_begin")
-        .query("timestamp <= @date_range.date_end")
+        .query(f"timestamp >= {date_range.date_begin}")
+        .query(f"timestamp <= {date_range.date_end}")
     )
 
     matches_per_day_df = get_matches_per_day(matches_df)
@@ -71,3 +73,19 @@ def matches_per_day_json_endpoint(date_range: DateRange):
         NumberMatchesDay(date_of_count=res['timestamp'], count=res['count'])
         for _, res in matches_per_day_df.iterrows()
     ]
+
+# {
+#     'map': 'Bind',
+#     'patch': '4.02'
+# }
+
+@app.post("/valometa/agents-map-patch-rate", response_model=None)
+def agents_per_map_per_patch(filter: MapPatchFilter):
+    engine = create_engine(f"sqlite:///{sqlite_db_path}")
+
+    agents_df = (
+        pandas
+        .read_sql('agents', con=engine)
+        .query(f"map_name = {filter.map_name}")
+        .quer(f"patch = {filter.patch}")
+    )

@@ -11,3 +11,8 @@ class DateRange(BaseModel):
 class NumberMatchesDay(BaseModel):
     date_of_count: date
     count: int
+
+
+class MapPatchFilter(BaseModel):
+    map_name: str
+    patch: str
