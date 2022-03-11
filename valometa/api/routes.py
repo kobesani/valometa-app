@@ -70,8 +70,9 @@ def matches_per_day_json_endpoint(date_range: DateRange):
     matches_per_day_df = get_matches_per_day(matches_df)
 
     return [
-        NumberMatchesDay(date_of_count=res['timestamp'], count=res['count'])
-        for _, res in matches_per_day_df.iterrows()
+        NumberMatchesDay(
+            date_of_count=res['timestamp'], count=res['count']
+        ) for _, res in matches_per_day_df.iterrows()
     ]
 
 # {
@@ -87,5 +88,5 @@ def agents_per_map_per_patch(filter: MapPatchFilter):
         pandas
         .read_sql('agents', con=engine)
         .query(f"map_name = {filter.map_name}")
-        .quer(f"patch = {filter.patch}")
+        .query(f"patch = {filter.patch}")
     )
