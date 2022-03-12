@@ -161,4 +161,4 @@ uploaded_data/
 valometa/data/log-*.txt
 
 # Ignore NPM modules
-valometa/api/templates/test_node_project/node_modules/
+valometa/api/templates/js_frontend/node_modules/
