@@ -23,6 +23,8 @@ async function postData(url = '', data = {}) {
 const picker = new Litepicker({ 
   firstDay: 1,
   format: "YYYY/MM/DD",
+  startDate: "2020/05/01",
+  endDate: "2020/12/31",
   numberOfMonths: 2,
   numberOfColumns: 2,
   autoApply: true,
