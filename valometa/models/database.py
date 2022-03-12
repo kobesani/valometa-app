@@ -3,7 +3,8 @@ from typing import Any, Dict, Optional
 
 from pydantic.dataclasses import dataclass
 
-from sqlalchemy.orm import declarative_base
+# from sqlalchemy.orm import declarative_base
+from sqlalchemy.ext.declarative import declarative_base
 
 from sqlalchemy import (
     Column,
