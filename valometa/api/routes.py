@@ -33,7 +33,7 @@ app.mount(
 @app.get("/", response_class=FileResponse)
 def root():
     return FileResponse(
-        f"/static/base.html", media_type="text/html"
+        f"{templates_path}/base.html", media_type="text/html"
     )
 
 
@@ -102,11 +102,7 @@ def agents_per_map_per_patch(picks_filter: MapPatchFilter):
         pandas.read_sql('agents', con=engine),
         picks_filter.patch_lower,
         picks_filter.patch_upper,
-        map_name=(
-            picks_filter.map_name
-            if picks_filter.map_name != 'All'
-            else None
-        )
+        map_name=picks_filter.map_name
     )
 
     selected_patches = (
