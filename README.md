@@ -2,6 +2,40 @@
 
 An app for tracking the valorant agent meta in the esports scene.
 
+## Installation
+
+### Postgresql
+
+For using `psycopg2` for postgres support in SQLAlchemy and python in general we
+need to install `libpg-dev` (at least on Ubuntu). In generl, it seems that the
+installation of `psycopg2` needs access to `pg_config` executable. This comes in with
+`libpg-dev`, so simply run `sudo apt install libpg-dev` on ubuntu. On MacOS you can
+install using brew `brew install postgresql`. You will be informed of something like this anyway when you try to run `poetry install` for this python environment.
+
+### Apache-Airflow
+
+This should install properly anyway, but it is important to note the location of
+the `AIRFLOW_HOME` directory where some configurations are located. On install
+of apache-airflow, this is known and defaults to `${HOME}/airflow`. However, it
+is better if this is contained in the project folder, so run
+`export AIRFLOW_HOME='./.airflow-poetry-env'`. Then the configuration will show up in this directory. You can confirm the location of the configuration files by
+
+``` python
+
+import airflow
+print(airflow.configuration.AIRFLOW_HOME)
+
+```
+
+Instead of running 
+``` bash
+export AIRFLOW_HOME='./.airflow-poetry-env'
+poetry install
+```
+
+you can also just run the `install-poetry-env.sh` shell script.
+
+
 ## Ideas
 
 There are a lot of matches without patch information. With those, perhaps
