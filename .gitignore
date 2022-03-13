@@ -156,3 +156,4 @@ cython_debug/
 uploaded_data/
 .airflow-env-3.8.10/
 .airflow-home/
+activate
