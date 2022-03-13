@@ -172,15 +172,16 @@ class MatchesBuild(object):
         matches_generator = MatchExtractor(main_select).yield_data()
 
         for match in matches_generator:
-            with self.db_session_maker() as sesh:
-                sesh.add(Matches(**match.asdict()))
-                try:
-                    sesh.commit()
-                    self.total_matches += 1
-                except exc.IntegrityError as e:
-                    # error is raised when games are shifted between pages
-                    # due to games finishing and being added to page 1
-                    print(e)
+            sesh = self.db_session_maker()
+            # with self.db_session_maker() as sesh:
+            sesh.add(Matches(**match.asdict()))
+            try:
+                sesh.commit()
+                self.total_matches += 1
+            except exc.IntegrityError as e:
+                # error is raised when games are shifted between pages
+                # due to games finishing and being added to page 1
+                print(e)
 
     def build_database(self) -> None:
         for x in range(1, self.max_pages + 1):
@@ -232,17 +233,18 @@ class MatchesUpdate(object):
         self.db_session_maker = sessionmaker(bind=self.engine)
         
         # get most recent match
-        with self.db_session_maker() as sesh:
-            self.latest_match = (
-                sesh
-                .query(Matches.timestamp)
-                # sometimes timestamp isn't found and therefore is None, filter
-                .filter(Matches.timestamp.is_not(None))
-                .order_by(desc('timestamp'))
-                # datetime returned as tuple
-                .first()[0]
-                .astimezone(timezone(timedelta(seconds=3600), 'UTC'))
-            )
+        # with self.db_session_maker() as sesh:
+        sesh = self.db_session_maker()
+        self.latest_match = (
+            sesh
+            .query(Matches.timestamp)
+            # sometimes timestamp isn't found and therefore is None, filter
+            .filter(Matches.timestamp.isnot(None))
+            .order_by(desc('timestamp'))
+            # datetime returned as tuple
+            .first()[0]
+            .astimezone(timezone(timedelta(seconds=3600), 'UTC'))
+        )
 
     def request(self) -> Optional[requests.models.Response]:
         with self.session as sesh:
@@ -272,15 +274,16 @@ class MatchesUpdate(object):
                 self.update_finished = True
                 print("Update should be finished now")
                 return
-            with self.db_session_maker() as sesh:
-                sesh.add(Matches(**match.asdict()))
-                try:
-                    sesh.commit()
-                except exc.IntegrityError as e:
-                    # non-unique primary key entry
-                    # error is triggered when the database is updated
-                    # last match accessed is the last one added to previous db
-                    continue
+            # with self.db_session_maker() as sesh:
+            sesh = self.db_session_maker()
+            sesh.add(Matches(**match.asdict()))
+            try:
+                sesh.commit()
+            except exc.IntegrityError as e:
+                # non-unique primary key entry
+                # error is triggered when the database is updated
+                # last match accessed is the last one added to previous db
+                continue
             self.matches_added += 1
 
     def update_database(self) -> None:
@@ -389,33 +392,34 @@ class AgentsBuild(object):
             player_ids, map_names_expanded, agents, patch_expanded
         )
 
-        with self.db_session_maker() as sesh:
-            for row in data_zipped:
-                exists = (
-                    sesh
-                    .query(Agents)
-                    .filter_by(
-                        match_id=row[0],
-                        game_id=row[1],
-                        team_id=row[2],
-                        player_id=row[3]
-                    )
-                    .first()
-                ) is not None
+        # with self.db_session_maker() as sesh:
+        sesh = self.db_session_maker()
+        for row in data_zipped:
+            exists = (
+                sesh
+                .query(Agents)
+                .filter_by(
+                    match_id=row[0],
+                    game_id=row[1],
+                    team_id=row[2],
+                    player_id=row[3]
+                )
+                .first()
+            ) is not None
 
-                if not(exists):
-                    sesh.add(Agents(**AgentItem(*row).asdict()))
-                    try:
-                        sesh.commit()
-                    except exc.IntegrityError as e:
-                        print(e)
+            if not(exists):
+                sesh.add(Agents(**AgentItem(*row).asdict()))
+                try:
+                    sesh.commit()
+                except exc.IntegrityError as e:
+                    print(e)
 
-                else:
-                    logger.warning(
-                        f"match_id={row[0]} and game_id={row[0]} already in db"
-                    )
+            else:
+                logger.warning(
+                    f"match_id={row[0]} and game_id={row[0]} already in db"
+                )
 
-                    return
+                return
 
     def build_database(self) -> None:
         for _, row in (
