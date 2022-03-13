@@ -1,0 +1,16 @@
+{
+  "name": "test_node_project",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "chart.js": "^3.7.1",
+    "litepicker": "^2.0.12",
+    "plotly.js-dist-min": ">=2.9.0"
+  }
+}

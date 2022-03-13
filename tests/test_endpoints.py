@@ -26,6 +26,18 @@ class TestMatchPerDayJSON:
 
         assert response.status_code == 200
 
+    def test_response_is_422(self, client):
+        response = client.post(
+            self.endpoint,
+            headers={"Content-Type": "application/json"},
+            json={
+                'date_begin': 'xd',
+                'date_end': '69'
+            }
+        )
+
+        assert response.status_code == 422
+
     def test_data_shape_matches_range(self, client):
         response = client.post(
             self.endpoint,

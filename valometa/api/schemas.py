@@ -1,7 +1,7 @@
 import enum
 
 from datetime import date
-from typing import List
+from typing import List, Literal
 
 from pydantic import BaseModel, confloat, root_validator
 
@@ -57,10 +57,6 @@ class NumberMatchesDay(BaseModel):
     count: int
 
 
-class PatchConstraintError(Exception):
-    pass
-
-
 class MapPatchFilter(BaseModel):
     map_name: MapOptions
     patch_lower: patch_constraint = min_patch_version
@@ -72,12 +68,8 @@ class MapPatchFilter(BaseModel):
             values.get('patch_lower'), values.get('patch_upper')
         )
 
-        # Nones if the confloat fails for lower or upper
         if lower is not None and upper is not None:
-            if lower > upper:
-                raise PatchConstraintError(
-                    f"lower={lower} > upper={upper} not allowed."
-                )
+            assert lower < upper, f"lower={lower} > upper={upper} not allowed."
 
         return values
 
