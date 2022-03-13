@@ -154,3 +154,5 @@ cython_debug/
 # vscode workspaces ignore
 *.code-workspace
 uploaded_data/
+.airflow-env-3.8.10/
+.airflow-home/

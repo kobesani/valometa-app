@@ -2,46 +2,11 @@
 
 An app for tracking the valorant agent meta in the esports scene.
 
-## Installation
-
-### Postgresql
-
-For using `psycopg2` for postgres support in SQLAlchemy and python in general we
-need to install `libpg-dev` (at least on Ubuntu). In generl, it seems that the
-installation of `psycopg2` needs access to `pg_config` executable. This comes in with
-`libpg-dev`, so simply run `sudo apt install libpg-dev` on ubuntu. On MacOS you can
-install using brew `brew install postgresql`. You will be informed of something like this anyway when you try to run `poetry install` for this python environment.
-
-### Apache-Airflow
-
-This should install properly anyway, but it is important to note the location of
-the `AIRFLOW_HOME` directory where some configurations are located. On install
-of apache-airflow, this is known and defaults to `${HOME}/airflow`. However, it
-is better if this is contained in the project folder, so run
-`export AIRFLOW_HOME='./.airflow-poetry-env'`. Then the configuration will show up in this directory. You can confirm the location of the configuration files by
-
-``` python
-
-import airflow
-print(airflow.configuration.AIRFLOW_HOME)
-
-```
-
-Instead of running 
-``` bash
-export AIRFLOW_HOME='./.airflow-poetry-env'
-poetry install
-```
-
-you can also just run the `install-poetry-env.sh` shell script.
-
-
 ## Ideas
 
 There are a lot of matches without patch information. With those, perhaps
 we can try to infer the patch from the agent selection for the match and the
 date that the match was played.
-
 
 ## Current Status
 
@@ -51,17 +16,41 @@ addition, an api (using FastAPI) was written to gather the number of matches
 played per day within a specified time range (more details further down this
 page).
 
-The scrapers now can build a whole match table from scratch and can use an existing database to update the match table as well. The scraper for getting the agents played
-during each match is nearly complete, just need some additional functionality, because the number of games played is so great, the ability to update and not have to build from scratch is very important.
+The scrapers now can build a whole match table from scratch and can use an
+existing database to update the match table as well. The scraper for getting the
+agents played during each match is nearly complete, just need some additional
+functionality, because the number of games played is so great, the ability to
+update and not have to build from scratch is very important.
 
 ## Installation
 
-In theory, this should work on Windows as well, but it is only thoroughly tested
-and programmed on Linux. You might have to write a separate script for Windows
-to run the server or just use the Windows subsystem for Linux. Otherwise, in
-Linux, one just has to run `poetry install` in the top-level directory of the
-project (see Poetry documentation for more details) to install all the
-necessities. Then you can follow the documenation below
+### Python Environment
+
+For Postgresql support, please install whatever dependency is needed such that
+the `pg_config` executable is available. On Ubuntu 20.04, this required running
+the following commands:
+
+``` bash
+sudo apt update && sudo apt install libpg-dev
+```
+
+and on MacOS you could run `brew install postgresql`. This is needed for
+`psycopg2` support in Python.
+
+Currently, only Python 3.8.10 is tested. In theory, one should be able to run
+the `install-airflow-valometa-env.sh` script, provided Python3 is available and
+you're able to run something like:
+
+``` python
+python -m venv <ENV-NAME>
+```
+
+The installation script installs everything needed against a constraints file
+which is downloaded during the execution of the script from the Apache-Airflow
+confirmed builds. So, even though it is only tested on Python 3.8.10, it should
+also run on other Python3 versions, provided there are no unforeseen package
+dependency issues. If you run into something like that, please consider using a
+different Python version.
 
 ### API Documentation
 
@@ -81,7 +70,9 @@ before running the script (otherwise `uvicorn` will yell at you).
    endpoint.
 
 2. Matches Played Per Day ("/valometa/matches-per-day") - returns a templated
-   HTML response (called `table.html`) containing a table with two columns, the date the matches were played and the number of matches played on that day. This uses jinja2 support in the FastAPI framework.
+   HTML response (called `table.html`) containing a table with two columns, the
+   date the matches were played and the number of matches played on that day.
+   This uses jinja2 support in the FastAPI framework.
 
 3. Matches Played Per Day JSON ("/valometa/matches-per-day-json) - takes a JSON
    POST input `{'date_begin': 'YYYY-MM-DD', 'date_end': 'YYYY-MM-DD'}` from a
