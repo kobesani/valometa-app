@@ -73,3 +73,4 @@ airflow users create \
     --role Admin \
     --email harold.rockata@gmail.com
 
+python generate-sqlite-connection.py
