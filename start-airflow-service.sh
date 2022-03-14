@@ -1,20 +1,20 @@
 #! /usr/bin/env bash
 
-source './.airflow-env-3.8.10/bin/activate'
+# ENV_NAME=".airflow-env-$(python3 --version | cut -f2 -d' ')"
+
+# source "./.airflow-env-${ENV_NAME}/bin/activate"
+
+source "${PWD}/.airflow-env-$(python3 --version | cut -f2 -d' ')/bin/activate"
 
 AIRFLOW_VERSION=$(airflow version)
-# export AIRFLOW_HOME="${PWD}/.airflow-${AIRFLOW_VERSION}-home"
-export PYTHONPATH="/mnt/sage/Development/valometa-app/valometa:${PYTHONPATH}"
 
-# export AIRFLOW_HOME="/mnt/sage/Development/valometa-app/.airflow-home"
-# export AIRFLOW_HOME="${PWD}/.airflow-home"
-# export AIRFLOW_HOME="${PWD}/valometa/airflow-home"
+# export PYTHONPATH="${PWD}/valometa:${PYTHONPATH}"
 
-# export AIRFLOW_HOME="/mnt/sage/Development/valometa-app/valometa/airflow-home"
-export AIRFLOW_HOME="/mnt/sage/Development/valometa-app/.airflow-2.2.4-home"
+# export PYTHONPATH="/mnt/sage/Development/valometa-app/valometa:${PYTHONPATH}"
+export AIRFLOW_HOME="${PWD}/.airflow-${AIRFLOW_VERSION}-home"
 
-airflow webserver -D
-airflow scheduler -D
+PYTHONPATH=${PWD} airflow webserver -D
+PYTHONPATH=${PWD} airflow scheduler -D
 
 echo "Webserver running on localhost:8080"
 
