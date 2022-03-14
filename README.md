@@ -31,7 +31,7 @@ the `pg_config` executable is available. On Ubuntu 20.04, this required running
 the following commands:
 
 ``` bash
-sudo apt update && sudo apt install libpg-dev
+sudo apt update && sudo apt install libpq-dev
 ```
 
 and on MacOS you could run `brew install postgresql`. This is needed for
