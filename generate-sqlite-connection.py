@@ -39,7 +39,7 @@ if num_connections == 1:
 connections_found.delete()
 session.commit()
 
-logger.info(f"Old {connection_id_found} deleted")
+# logger.info(f"Old {connection_id_found} deleted")
 
 conn = Connection(
         conn_id=connection_id,

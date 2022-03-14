@@ -11,12 +11,11 @@ python3 -m venv ${ENV_NAME}
 
 source ${ENV_NAME}/bin/activate
 
-
-# Airflow needs a home. `~/airflow` is the default
-export AIRFLOW_HOME="${PWD}/.airflow-home"
-
 # Install Airflow using the constraints file
 AIRFLOW_VERSION=2.2.4
+
+# Airflow needs a home. `~/airflow` is the default
+export AIRFLOW_HOME="${PWD}/.airflow-${AIRFLOW_VERSION}-home"
 
 # For example: 3.8
 PYTHON_VERSION="$(python --version | cut -d " " -f 2 | cut -d "." -f 1-2)"
@@ -53,13 +52,13 @@ pip install \
 
 if [ "${DEV}" = "true" ]; then
     echo "Installing development dependencies = ${DEV}"
-    pip install \
-        pytest \
+	pip install \
+		pytest \
 		ipython \
-	    jupyter \
-	    pytest-cov \
-	    black \
-	    --constraint "constraints-${PYTHON_VERSION}.txt"
+		jupyter \
+		pytest-cov \
+		black \
+		--constraint "constraints-${PYTHON_VERSION}.txt"
 fi
 
 airflow info
