@@ -4,13 +4,16 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "parcel index.html --open",
+    "build": "parcel build index.html"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "chart.js": "^3.7.1",
     "litepicker": "^2.0.12",
+    "parcel": "^2.3.2",
+    "parcel-bundler": "^1.6.1",
     "plotly.js-dist-min": ">=2.9.0"
   }
 }
