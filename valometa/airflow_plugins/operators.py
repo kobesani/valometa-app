@@ -1,11 +1,18 @@
+import enum
 import os
 
 import pandas
+import parsel
+import pendulum
+import requests
 
 from airflow.models import BaseOperator
 from airflow.providers.sqlite.hooks.sqlite import SqliteHook
 
 from valometa.airflow_plugins import sqlite_conn_id
+
+from valometa.extractors.results.selectors import CardExtractor
+from valometa.extractors.results.other import DateExtractor
 
 class LoadMatchesOperator(BaseOperator):
     def __init__(
@@ -58,3 +65,49 @@ class LoadMatchesOperator(BaseOperator):
         self.clean_up(sqlite_hook)
 
         self.populate_matches_table(sqlite_hook, data)
+
+
+def get_max_pages():
+    response = requests.get(f"https://www.vlr.gg/matches/results")
+
+    main_select = parsel.Selector(response.text)
+    pages_as_str = (
+        main_select
+        .xpath("//a[@class='btn mod-page']")
+        .xpath("./text()")[-1]
+        .get()
+    )
+
+    return int(pages_as_str)
+
+
+def match_card_extractor(days_in_past: int):
+    max_pages = get_max_pages()
+
+    extraction_date = (
+        pendulum
+        .now()
+        .subtract(days=days_in_past)
+        .date()
+        .format("ddd, MMMM DD, YYYY")
+    )
+
+    cards_dict = {}
+    for page in range(1, max_pages + 1):
+        response = requests.get(
+            f"https://www.vlr.gg/matches/results/?page={page}"
+        )
+
+        main_select = parsel.Selector(response.text)
+
+        dates = list(DateExtractor(main_select).yield_data())
+        cards = list(CardExtractor(main_select).yield_data())
+
+        for idx, (date, card) in enumerate(zip(dates, cards)):
+            if date == extraction_date:
+                cards_dict[page] = card
+                break
+            
+        # check if last index, could be more matches on next page
+        if idx == (len(dates) - 1):
+            continue
